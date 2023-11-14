@@ -1,0 +1,73 @@
+{% extends 'base.html.twig' %}
+
+{% block title %} Калькулятор {% endblock %}
+
+{% block content %}
+    <article class="calculator">
+        <h3>Калькулятор</h3>
+
+        <form action="#" class="form">
+            <div class="input-group">
+                <input name="first" class="form-control" type="number" placeholder="Операнд 1">
+                <select class="form-select" name="operation" id="">
+                    <option value="">Операция</option>
+                    <option value="*">Умножение</option>
+                    <option value="/">Деление</option>
+                    <option value="+">Сложение</option>
+                    <option value="-">Вычитание</option>
+                </select>
+                <input name="second" class="form-control" type="number" placeholder="Операнд 2">
+                <button type="submit" class="calculate btn btn-primary">Вычислить</button>
+            </div>
+        </form>
+
+        <section class="result alert alert-success">
+            Результат:
+        </section>
+
+        <aside class="alert alert-secondary">
+            Варианты операций: сложение, вычитание, умножение, деление
+        </aside>
+    </article>
+
+    <script>
+        const calculate = document.querySelector('.calculate');
+        const resultSection = document.querySelector('.result');
+
+        const firstOperand = document.querySelector('[name=first]');
+        const secondOperand = document.querySelector('[name=second]');
+        const operator = document.querySelector('[name=operation]');
+
+        calculate.addEventListener('click', async (event) => {
+            event.preventDefault();
+
+            const first = firstOperand.value;
+            const second = secondOperand.value;
+            const operation = operator.value;
+
+            const response = await fetch('/api/calculator', {
+                method: 'post',
+                body: JSON.stringify({
+                    first,
+                    second,
+                    operation
+                })
+            });
+
+            let result = await response.json();
+            result = result['result'];
+
+            resultSection.innerText = `Результат: ${first} ${operation} ${second} = ${result}`;
+        });
+    </script>
+
+    <style>
+        .calculator {
+            width: 640px;
+        }
+
+        .result {
+            margin-top: 20px;
+        }
+    </style>
+{% endblock %}

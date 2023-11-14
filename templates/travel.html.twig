@@ -1,0 +1,104 @@
+{% extends 'base.html.twig' %}
+
+{% block content %}
+    <article class="travel">
+        <h3>Стоимость путешествия с детской скидкой</h3>
+
+        <form class="form-inline" action="">
+            <div class="row">
+                <div class="col form-group required">
+                    <label for="base-cost">Базовая стоимость, ₽</label>
+                    <input id="base-cost" type="number" class="form-control" name="base-cost">
+                    <small class="form-text text-muted">Обязательное поле</small>
+                </div>
+                <div class="col form-group required">
+                    <label for="birthday-date">Дата рождения</label>
+                    <input id="birthday-date" type="date" class="form-control" name="birthday-date">
+                    <small class="form-text text-muted">Обязательное поле</small>
+                </div>
+
+                <!---
+                    Так как мы ничего не делаем с датой путешествия,
+                    я её просто не стал использовать, не совсем понимаю для чего она,
+                    возможно просто для целостности бизнес-кейса.
+                --->
+                <div class="col form-group">
+                    <label for="travel-date">Дата путешествия</label>
+                    <input id="travel-date" type="date" class="form-control" name="travel-date">
+                    <small class="form-text text-muted">Если не указано, то считаем на сегодня</small>
+                </div>
+            </div>
+
+            <button class="btn btn-primary calculate">Рассчитать</button>
+        </form>
+
+        <section class="result alert alert-success">
+            Результат:
+        </section>
+
+        <aside class="alert alert-secondary">
+            Скидка применяется в соответствии с возрастом ребёнка (несовершеннолетнего) на момент начала путешествия. <br/>
+            Скидка детям до 3 лет - 80%. <br/>
+            Скидка детям с 6 лет - 30%, но не более 4500₽. <br/>
+            Скидка детям с 12 лет - 10%.
+        </aside>
+    </article>
+
+    <script>
+        const resultSection = document.querySelector('.result');
+        const calculate = document.querySelector('.calculate');
+        const birthDate = document.querySelector('[name=birthday-date]');
+        const baseCost = document.querySelector('[name=base-cost]');
+
+        calculate.addEventListener('click', async (event) => {
+            event.preventDefault();
+
+            const age = getAge(birthDate.value);
+            const sum = baseCost.value;
+
+            const response = await fetch('/api/travel/calculator', {
+                method: 'post',
+                body: JSON.stringify({
+                    age,
+                    sum
+                })
+            });
+
+            let result = await response.json();
+            result = result['result'];
+
+            resultSection.innerText = `Результат: ${result}`;
+        });
+
+        function getAge(dateString) {
+            var today = new Date();
+            var birthDate = new Date(dateString);
+            var age = today.getFullYear() - birthDate.getFullYear();
+            var m = today.getMonth() - birthDate.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+            return age;
+        }
+    </script>
+
+    <style>
+        .travel {
+            width: 640px;
+        }
+
+        .calculate {
+            margin-top: 20px;
+        }
+
+        .result {
+            margin-top: 20px;
+        }
+
+        .form-group.required label:after {
+            content:"*";
+            color:red;
+            margin-left: 3px;
+        }
+    </style>
+{% endblock %}
